@@ -1,9 +1,15 @@
 import express from 'express'
 import { slowTask } from './tasks.js'
 import { logger } from './logger.js'
+import client, { register } from 'prom-client'
 
 const app = express()
 const PORT = process.env.PORT || 8000
+
+const collectDefaultMetrics = client.collectDefaultMetrics
+
+// collects metrics like event loop lags, heap usage, RAM and CPU usage
+collectDefaultMetrics({ register: client.register })
 
 app.get('/', (req, res) => {
     logger.info('GET request to root endpoint')
@@ -27,6 +33,12 @@ app.get('/slow', async (req, res) => {
             error: error.message
         })
     }
+})
+
+app.get('/metrics', async (req, res) => {
+    res.set('Content-Type', register.contentType)
+    const metrics = await client.register.metrics()
+    res.send(metrics)
 })
 
 app.listen(PORT, () => {
