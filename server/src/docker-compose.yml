@@ -1,7 +1,7 @@
 version: "3.7"
 
 services:
-        prom-server:
+        prometheus-server:
                 image: prom/prometheus
                 volumes:
                         - ./prometheus-config.yml:/etc/prometheus/prometheus.yml

@@ -113,3 +113,55 @@ services:
 ```bash
 docker-compose up
 ```
+
+![alt text](images/image4.png)
+
+Visit the Prometheus dashboard at:
+
+```bash
+localhost:9090
+```
+
+![alt text](images/image5.png)
+
+Hit as many requests as you can to see the metrics increasing in 5-10 seconds.
+The CPU User seconds increases suddenly.
+![alt text](images/image6.png)
+
+As time passes, it becomes less steeper since no new requests are being made.
+![alt text](images/image7.png)
+
+# Grafana 🔥
+
+#### Let's visualize the metrics in Grafana. It interacts with Prometheus to fetch the metrics and create charts, dashboards, and alerts.
+
+```bash
+docker run -d -p 3000:3000 --name=grafana_dashboard grafana/grafana-oss
+```
+
+Enter Username and Password as `admin`.
+
+## 7. Set up Grafana with Prometheus![alt text](images/image8.png)
+
+1. Start the Grafana.
+   `bash
+docker run -d -p 3000:3000 --name=grafana_dashboard grafana/grafana-oss
+`
+2. Login to Grafana - Open your browser and go to `http://localhost:3000` - Use `admin` for both username and password - You'll be prompted to change the password on first login
+
+3. Connect Prometheus as a data source - Click on "Create your first dashboard" - Select "Add a new Data Source" - Choose "Prometheus" - Enter your Prometheus server URL (`http://<PRIVATE_IP>:9090`) - Save and test the connection
+
+4. Create your first dashboard - Click "Create Dashboard" - Add panels to visualize your metrics
+
+![alt text](images/image10.png)
+
+- Using Gauge
+  ![alt text](images/image11.png)
+
+- Import Ready made Grafana Dashboard from https://grafana.com/grafana/dashboards/11159-nodejs-application-dashboard/
+
+![alt text](images/image12.png)
+
+# Dashboard for Node.js Application
+
+![alt text](images/image13.png)
