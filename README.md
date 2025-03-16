@@ -1,5 +1,45 @@
 # Prometheus, Grafana, and Loki: Building a Central Monitoring System
 
+## Table of Contents
+
+1. [Introduction](#introduction)
+2. [Components](#components) - [Prometheus](#prometheus) - [Grafana](#grafana) - [Loki](#loki)
+3. [Architecture Overview](#architecture-overview)
+4. [Setup](#setup) - [Install Prometheus Client](#1-install-prometheus-client-on-the-server-to-collect-metrics) - [Initiate the Client](#2-initiate-the-client-in-your-application) - [Create a Route to Expose Metrics](#3-create-a-route-to-expose-metrics) - [Run the Server](#4-run-the-server) - [Run the Prometheus Server](#5-run-the-prometheus-server) - [Create Docker Compose File](#6-crete-a-docker-composeyml-file-and-run-it) - [Set up Grafana](#7-set-up-grafana) - [Add Custom Metrics](#add-your-custom-metrics) - [Push Logs to Loki](#grafana-loki)
+5. [Conclusion](#conclusion)
+
+## Introduction
+
+This project demonstrates how to set up a comprehensive monitoring and observability stack using three powerful open-source tools: Prometheus, Grafana, and Loki.
+
+## Components
+
+### Prometheus
+
+Prometheus is an open-source monitoring and alerting toolkit designed for reliability and scalability.
+
+- Collects and stores metrics as time-series data
+- Features a flexible query language (PromQL)
+- Supports multiple modes of graphing and dashboarding
+
+### Grafana
+
+Grafana is a multi-platform open-source analytics and interactive visualization web application.
+
+- Creates customizable dashboards
+- Visualizes metrics from various data sources
+- Provides alerting capabilities
+
+### Loki
+
+Loki is a horizontally scalable, highly available log aggregation system.
+
+- Designed to be cost-effective
+- Uses labels for indexing (similar to Prometheus)
+- Doesn't index the contents of logs
+
+## Architecture Overview
+
 ## Monitoring = Metrics + Logs + Alerts
 
 This project demonstrates how to set up a comprehensive monitoring and observability stack using three powerful open-source tools:
@@ -165,3 +205,78 @@ docker run -d -p 3000:3000 --name=grafana_dashboard grafana/grafana-oss
 # Dashboard for Node.js Application
 
 ![alt text](images/image13.png)
+![alt text](image.png)
+
+## Add Your Custom Metrics
+
+First, install the `response-time` package:
+
+```bash
+npm install response-time
+```
+
+Next, add custom requests for tracking HTTP request duration and total number of HTTP requests:
+
+```javascript
+const responseTime = require("response-time");
+const client = require("prom-client");
+
+const reqResTime = new client.Histogram({
+	name: "http_req_res_duration_seconds",
+	help: "Duration of HTTP requests in seconds",
+	labelNames: ["method", "route", "status_code"],
+	buckets: [0.1, 0.5, 1, 50, 100, 200, 500, 800, 1000, 2000],
+});
+
+const totalReqCounter = new client.Counter({
+	name: "http_requests_total",
+	help: "Total number of HTTP requests",
+	labelNames: ["method", "route", "status_code"],
+});
+
+app.use(
+	responseTime((req, res, time) => {
+		totalReqCounter.inc();
+		reqResTime
+			.labels({
+				method: req.method,
+				route: req.url,
+				status_code: res.statusCode,
+			})
+			.observe(time);
+	})
+);
+```
+
+![alt text](images/image-14.png)
+
+# Grafana Loki
+
+To push logs to the Loki server, run the following command:
+
+```bash
+docker run -d -p 3100:3100 --name=loki grafana/loki
+```
+
+Install the necessary packages:
+
+```bash
+npm i winston winston-loki
+```
+
+## Configure logging levels:
+
+![alt text](images/image-15.png)
+
+## For "info" level logs:
+
+![alt text](images/image-16.png)
+
+## For "error" level logs:
+
+![alt text](images/image-17.png)
+![alt text](images/image-18.png)
+
+# Add Info and Error logs to the Grafana Dashboard:
+
+![alt text](images/image-19.png)
